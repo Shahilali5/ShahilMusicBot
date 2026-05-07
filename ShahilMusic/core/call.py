@@ -9,12 +9,17 @@ from pytgcalls import PyTgCalls, StreamType
 from pytgcalls.exceptions import (
     AlreadyJoinedError,
     NoActiveGroupCall,
-    TelegramServerError,
 )
 from pytgcalls.types import Update
-from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
-from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
-from pytgcalls.types.stream import StreamAudioEnded
+
+try:
+    from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
+    from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
+    from pytgcalls.types.stream import StreamAudioEnded
+except ImportError:
+    from pytgcalls.types import AudioPiped, AudioVideoPiped
+    from pytgcalls.types import HighQualityAudio, MediumQualityVideo
+    from pytgcalls.types import StreamAudioEnded
 
 import config
 from ShahilMusic import LOGGER, YouTube, app
@@ -307,6 +312,10 @@ class Call(PyTgCalls):
                 else AudioPiped(link, audio_parameters=HighQualityAudio())
             )
         try:
+            await assistant.join_chat(chat_id)
+        except:
+            pass
+        try:
             await assistant.join_group_call(
                 chat_id,
                 stream,
@@ -316,7 +325,7 @@ class Call(PyTgCalls):
             raise AssistantErr(_["call_8"])
         except AlreadyJoinedError:
             raise AssistantErr(_["call_9"])
-        except TelegramServerError:
+        except Exception:
             raise AssistantErr(_["call_10"])
         await add_active_chat(chat_id)
         await music_on(chat_id)
