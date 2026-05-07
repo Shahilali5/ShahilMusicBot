@@ -314,28 +314,31 @@ class Call(PyTgCalls):
         language = await get_lang(chat_id)
         _ = get_string(language)
         if video:
-            stream = AudioVideoPiped(
-                link,
-                audio_parameters=HighQualityAudio(),
-                video_parameters=MediumQualityVideo(),
-            )
         try:
             if video:
-                stream = AudioVideoPiped(
-                    link,
-                    audio_parameters=HighQualityAudio(),
-                    video_parameters=MediumQualityVideo(),
-                )
+                try:
+                    from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
+                    stream = AudioVideoPiped(
+                        link,
+                        audio_parameters=HighQualityAudio(),
+                        video_parameters=MediumQualityVideo(),
+                    )
+                except:
+                    from pytgcalls.types import AudioQuality, VideoQuality
+                    stream = AudioPiped(
+                        link,
+                        audio_parameters=AudioQuality.STUDIO,
+                        video_parameters=VideoQuality.HD_720P
+                    )
             else:
-                stream = AudioPiped(link, audio_parameters=HighQualityAudio())
-        except TypeError:
-            # Handle v2.x MediaStream
-            from pytgcalls.types import AudioQuality, VideoQuality
-            stream = AudioPiped(
-                link,
-                audio_parameters=AudioQuality.STUDIO,
-                video_parameters=VideoQuality.HD_720P if video else None
-            )
+                try:
+                    from pytgcalls.types.input_stream.quality import HighQualityAudio
+                    stream = AudioPiped(link, audio_parameters=HighQualityAudio())
+                except:
+                    from pytgcalls.types import AudioQuality
+                    stream = AudioPiped(link, audio_parameters=AudioQuality.STUDIO)
+        except Exception as e:
+            return await self.stop_stream(chat_id)
         try:
             await assistant.join_chat(chat_id)
         except:
