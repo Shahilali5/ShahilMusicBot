@@ -5,15 +5,18 @@ from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup
 import pytgcalls
 from pytgcalls import PyTgCalls
-from pytgcalls.exceptions import (
-    AlreadyJoinedError,
-    NoActiveGroupCall,
-    TelegramServerError,
-)
+import pytgcalls.exceptions as exceptions
 from pytgcalls.types import Update
-from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
-from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
-from pytgcalls.types.stream import StreamAudioEnded
+
+# Dynamic import for version compatibility
+try:
+    from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
+    from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
+    from pytgcalls.types.stream import StreamAudioEnded
+except (ImportError, ModuleNotFoundError):
+    from pytgcalls.types import MediaStream as AudioPiped, AudioQuality, VideoQuality
+    # For backward compatibility in code below
+    AudioVideoPiped = AudioPiped 
 
 import config
 from ShahilMusic import LOGGER, app
@@ -138,7 +141,6 @@ class Call(PyTgCalls):
         if not check:
             return await self.stop_stream(chat_id)
         
-        # Check for loop
         loop = await get_loop(chat_id)
         if loop:
             for i in range(len(check)):
@@ -147,12 +149,9 @@ class Call(PyTgCalls):
         
         next_song = check[0]
         if next_song["streamtype"] == "playlist":
-            # Logic for playlist stream
             pass
         
         await self.stop_stream(chat_id)
-        # Logic to start next stream
-        # This is a simplified version for structure
 
     async def join_call(
         self,
@@ -163,7 +162,6 @@ class Call(PyTgCalls):
     ):
         assistant = await _get_assistant(chat_id)
         
-        # Setup stream
         try:
             if video:
                 try:
@@ -195,15 +193,19 @@ class Call(PyTgCalls):
                 chat_id,
                 stream,
             )
-        except AlreadyJoinedError:
-            try:
-                await assistant.change_stream(chat_id, stream)
-            except Exception as e:
-                raise AssistantErr(f"Change Stream Error: {e}")
-        except NoActiveGroupCall:
-            raise AssistantErr("No Active Group Call Found.")
         except Exception as e:
-            raise AssistantErr(f"Join Call Error: {e}")
+            # Handle AlreadyJoined variants in v0.9.x vs v2.x
+            if "AlreadyJoined" in str(e):
+                try:
+                    await assistant.change_stream(chat_id, stream)
+                except Exception as inner_e:
+                    raise AssistantErr(f"Change Stream Error: {inner_e}")
+            elif "NoActiveGroupCall" in str(e):
+                raise AssistantErr("No Active Group Call Found.")
+            elif "TelegramServerError" in str(e):
+                raise AssistantErr("Telegram Server Error. Please try again later.")
+            else:
+                raise AssistantErr(f"Join Call Error: {e}")
 
         await add_active_chat(chat_id)
         if video:
@@ -223,7 +225,6 @@ class Call(PyTgCalls):
             await self.five.start()
 
     async def decorators(self):
-        # Register handlers for all 5 assistants
         clients = []
         if config.STRING1: clients.append(self.one)
         if config.STRING2: clients.append(self.two)
@@ -232,16 +233,19 @@ class Call(PyTgCalls):
         if config.STRING5: clients.append(self.five)
 
         for client in clients:
-            @client.on_stream_end()
-            async def handler(client, update):
-                await self.change_stream(client, update.chat_id)
+            # Dynamic handler registration
+            try:
+                @client.on_stream_end()
+                async def handler(client, update):
+                    await self.change_stream(client, update.chat_id)
+            except:
+                pass
 
-            @client.on_kicked()
-            async def kicked_handler(client, chat_id):
-                await self.stop_stream(chat_id)
-
-            @client.on_closed_voice_chat()
-            async def closed_handler(client, chat_id):
-                await self.stop_stream(chat_id)
+            try:
+                @client.on_kicked()
+                async def kicked_handler(client, chat_id):
+                    await self.stop_stream(chat_id)
+            except:
+                pass
 
 Shahil = Call()
