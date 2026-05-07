@@ -52,6 +52,7 @@ SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/DevilWebszchat")
 
 # Set this to True if you want the assistant to automatically leave chats after an interval
 AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", True))
+AUTO_UPDATE = bool(getenv("AUTO_UPDATE", True))
 
 
 # Get this credentials from https://developer.spotify.com/dashboard
@@ -88,10 +89,10 @@ confirmer = {}
 
 
 START_IMG_URL = getenv(
-    "START_IMG_URL", "https://envs.sh/JJR.jpg"
+    "START_IMG_URL", "https://graph.org/file/69598b4899fc666113973-f937656b14c8264518.jpg"
 )
 PING_IMG_URL = getenv(
-    "PING_IMG_URL", "https://graph.org/file/15fde98db07a70beb6f4a.jpg"
+    "PING_IMG_URL", "https://graph.org/file/69598b4899fc666113973-f937656b14c8264518.jpg"
 )
 PLAYLIST_IMG_URL = "https://telegra.ph/file/8ff7a386f161aea9ed5fb.jpg"
 STATS_IMG_URL = "https://graph.org/file/2dcb664a9c0ba9d9d80f6.jpg"
