@@ -38,14 +38,6 @@
   <img src="https://github.com/Shahilali5/ShahilMusic/blob/main/%F0%9F%96%A4%EA%9C%B1%E2%83%9F%D0%BD%CD%A5%CE%B9%CE%BD%CD%A3%CE%B1%CD%AB%D0%B8%D1%95%D0%BD%CF%85%F0%9F%96%A4.gif">
 </p>
 
-
-<h4>𝐓ʀʏ 𝐌ʏ 𝐓ᴇʟᴇɢʀᴀᴍ 𝐁ᴏᴛ's<h4>
- 
-[![MUSIC](https://img.shields.io/badge/-Shahil440Bot-E1306C?style=for-the-badge&logo=Shahil440Bot&logoColor=green)](https://t.me/Shahil440Bot)
-[![MUSIC](https://img.shields.io/badge/TheKittyXD_Bot-%2307405e.svg?&style=for-the-badge&logo=TheKittyXD_Bot&logoColor)](https://t.me/TheKittyXD_Bot)
-[![MUSIC](https://img.shields.io/badge/itsWaifuBot-%2307405e.svg?&style=for-the-badge&logo=itsWaifuBot&logoColor)](https://t.me/itsWaifuBot)
-
-
 <b>𝗗𝗘𝗣𝗟𝗢𝗬𝗠𝗘𝗡𝗧 𝗠𝗘𝗧𝗛𝗢𝗗𝗦</b>
 </p>
 
