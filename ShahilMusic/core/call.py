@@ -333,8 +333,8 @@ class Call(PyTgCalls):
             from pytgcalls.types import AudioQuality, VideoQuality
             stream = AudioPiped(
                 link,
-                audio_quality=AudioQuality.STUDIO,
-                video_quality=VideoQuality.HD_720P if video else None
+                audio_parameters=AudioQuality.STUDIO,
+                video_parameters=VideoQuality.HD_720P if video else None
             )
         try:
             await assistant.join_chat(chat_id)
@@ -606,9 +606,8 @@ class Call(PyTgCalls):
             await self.four.start()
         if config.STRING5:
             await self.five.start()
-        
+
     async def decorators(self):
-        # Define the legacy handler
         async def legacy_service_handler(_, chat_id: int):
             await self.stop_stream(chat_id)
 
@@ -617,24 +616,24 @@ class Call(PyTgCalls):
                 return
             await self.change_stream(client, update.chat_id)
 
-        # Define the v2.x Unified Handler
-        from pytgcalls.types import StreamAudioEnded as V2StreamAudioEnded, KickedFromGroupCall, GroupCallClosed, LeftGroupCall
+        try:
+            from pytgcalls.types import StreamAudioEnded as V2StreamAudioEnded, KickedFromGroupCall, GroupCallClosed, LeftGroupCall
 
-        async def v2_universal_handler(client, update):
-            if isinstance(update, V2StreamAudioEnded):
-                await self.change_stream(client, update.chat_id)
-            elif isinstance(update, (KickedFromGroupCall, GroupCallClosed, LeftGroupCall)):
-                await self.stop_stream(update.chat_id)
+            async def v2_universal_handler(client, update):
+                if isinstance(update, V2StreamAudioEnded):
+                    await self.change_stream(client, update.chat_id)
+                elif isinstance(update, (KickedFromGroupCall, GroupCallClosed, LeftGroupCall)):
+                    await self.stop_stream(update.chat_id)
 
-        # Register handlers dynamically based on library version
-        for assistant in [self.one, self.two, self.three, self.four, self.five]:
-            if hasattr(assistant, "on_kicked"):
-                assistant.on_kicked()(legacy_service_handler)
-                assistant.on_closed_voice_chat()(legacy_service_handler)
-                assistant.on_left()(legacy_service_handler)
-                assistant.on_stream_end()(legacy_end_handler)
-            elif hasattr(assistant, "on_update"):
-                assistant.on_update()(v2_universal_handler)
-
+            for assistant in [self.one, self.two, self.three, self.four, self.five]:
+                if hasattr(assistant, "on_update"):
+                    assistant.on_update()(v2_universal_handler)
+                elif hasattr(assistant, "on_kicked"):
+                    assistant.on_kicked()(legacy_service_handler)
+                    assistant.on_closed_voice_chat()(legacy_service_handler)
+                    assistant.on_left()(legacy_service_handler)
+                    assistant.on_stream_end()(legacy_end_handler)
+        except ImportError:
+            pass
 
 Shahil = Call()
