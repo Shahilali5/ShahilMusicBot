@@ -124,7 +124,7 @@ sudo pkill -9 python3
 
 
 <h3 align="center">
-    ─「 🖤ꜱнͥινͣαͫиѕнυ🖤 」─
+    ─『 𝗦𝗛𝗔𝗛𝗜𝗟 × 𝗠𝗨𝗦𝗜𝗖 』─
 </h3>
 
 <p align="center">
