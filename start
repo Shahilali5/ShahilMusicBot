@@ -1,0 +1,4 @@
+if [ -d "myenv" ]; then
+    source myenv/bin/activate
+fi
+python3 -m ShahilMusic
