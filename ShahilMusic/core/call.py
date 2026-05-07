@@ -608,49 +608,33 @@ class Call(PyTgCalls):
             await self.five.start()
         
     async def decorators(self):
-        try:
-            @self.one.on_kicked()
-            @self.two.on_kicked()
-            @self.three.on_kicked()
-            @self.four.on_kicked()
-            @self.five.on_kicked()
-            @self.one.on_closed_voice_chat()
-            @self.two.on_closed_voice_chat()
-            @self.three.on_closed_voice_chat()
-            @self.four.on_closed_voice_chat()
-            @self.five.on_closed_voice_chat()
-            @self.one.on_left()
-            @self.two.on_left()
-            @self.three.on_left()
-            @self.four.on_left()
-            @self.five.on_left()
-            async def stream_services_handler(_, chat_id: int):
-                await self.stop_stream(chat_id)
+        # Define the legacy handler
+        async def legacy_service_handler(_, chat_id: int):
+            await self.stop_stream(chat_id)
 
-            @self.one.on_stream_end()
-            @self.two.on_stream_end()
-            @self.three.on_stream_end()
-            @self.four.on_stream_end()
-            @self.five.on_stream_end()
-            async def stream_end_handler1(client, update: Update):
-                if not isinstance(update, StreamAudioEnded):
-                    return
+        async def legacy_end_handler(client, update: Update):
+            if not isinstance(update, StreamAudioEnded):
+                return
+            await self.change_stream(client, update.chat_id)
+
+        # Define the v2.x Unified Handler
+        from pytgcalls.types import StreamAudioEnded as V2StreamAudioEnded, KickedFromGroupCall, GroupCallClosed, LeftGroupCall
+
+        async def v2_universal_handler(client, update):
+            if isinstance(update, V2StreamAudioEnded):
                 await self.change_stream(client, update.chat_id)
-        except AttributeError:
-            # Handle v2.x Unified Update Handler
-            from pytgcalls.types import StreamAudioEnded, KickedFromGroupCall, GroupCallClosed, LeftGroupCall
+            elif isinstance(update, (KickedFromGroupCall, GroupCallClosed, LeftGroupCall)):
+                await self.stop_stream(update.chat_id)
 
-            async def universal_handler(client, update):
-                if isinstance(update, StreamAudioEnded):
-                    await self.change_stream(client, update.chat_id)
-                elif isinstance(update, (KickedFromGroupCall, GroupCallClosed, LeftGroupCall)):
-                    await self.stop_stream(update.chat_id)
-
-            self.one.on_update()(universal_handler)
-            self.two.on_update()(universal_handler)
-            self.three.on_update()(universal_handler)
-            self.four.on_update()(universal_handler)
-            self.five.on_update()(universal_handler)
+        # Register handlers dynamically based on library version
+        for assistant in [self.one, self.two, self.three, self.four, self.five]:
+            if hasattr(assistant, "on_kicked"):
+                assistant.on_kicked()(legacy_service_handler)
+                assistant.on_closed_voice_chat()(legacy_service_handler)
+                assistant.on_left()(legacy_service_handler)
+                assistant.on_stream_end()(legacy_end_handler)
+            elif hasattr(assistant, "on_update"):
+                assistant.on_update()(v2_universal_handler)
 
 
 Shahil = Call()
