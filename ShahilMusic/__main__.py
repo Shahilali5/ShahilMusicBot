@@ -49,13 +49,15 @@ async def init():
     except:
         pass
     await Shahil.decorators()
+    from ShahilMusic.utils.auto_update import auto_update
+    asyncio.create_task(auto_update())
     LOGGER("ShahilMusic").info(
-        "\x43\x68\x61\x6D\x70\x75\x20\x42\x6F\x74\x20\x68\x61\x73\x20\x62\x65\x65\x6E\x20\x73\x75\x63\x63\x65\x73\x73\x66\x75\x6C\x6C\x79\x20\x73\x74\x61\x72\x74\x65\x64\x2E\x0A\x0A\x40\x54\x68\x65\x43\x68\x61\x6D\x70\x75\x20"
+        "ꜱʜᴀʜɪʟ ᴍᴜsɪᴄ ʙᴏᴛ ʜᴀs ʙᴇᴇɴ sᴜᴄᴄᴇssғᴜʟʟʏ sᴛᴀʀᴛᴇᴅ.\n\n@Shahil440"
     )
     await idle()
     await app.stop()
     await userbot.stop()
-    LOGGER("ShahilMusic").info("sᴛᴏᴘᴘɪɴɢ ᴄʜᴀᴍᴘᴜ ᴍᴜsɪᴄ ʙᴏᴛ...")
+    LOGGER("ShahilMusic").info("sᴛᴏᴘᴘɪɴɢ sʜᴀʜɪʟ ᴍᴜsɪᴄ ʙᴏᴛ...")
 
 
 if __name__ == "__main__":
