@@ -5,21 +5,39 @@ from typing import Union
 
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup
-from pytgcalls import PyTgCalls, StreamType
-from pytgcalls.exceptions import (
-    AlreadyJoinedError,
-    NoActiveGroupCall,
-)
-from pytgcalls.types import Update
+from pytgcalls import PyTgCalls
+try:
+    from pytgcalls.types import StreamType
+except ImportError:
+    StreamType = None
+try:
+    from pytgcalls.exceptions import (
+        AlreadyJoinedError,
+        NoActiveGroupCall,
+    )
+except ImportError:
+    class AlreadyJoinedError(Exception): pass
+    class NoActiveGroupCall(Exception): pass
+try:
+    from pytgcalls.types import Update
+except ImportError:
+    Update = None
 
 try:
     from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
     from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
     from pytgcalls.types.stream import StreamAudioEnded
 except ImportError:
-    from pytgcalls.types import AudioPiped, AudioVideoPiped
-    from pytgcalls.types import HighQualityAudio, MediumQualityVideo
-    from pytgcalls.types import StreamAudioEnded
+    try:
+        from pytgcalls.types import AudioPiped, AudioVideoPiped
+        from pytgcalls.types import HighQualityAudio, MediumQualityVideo
+        from pytgcalls.types import StreamAudioEnded
+    except ImportError:
+        from pytgcalls.types import MediaStream as AudioPiped
+        from pytgcalls.types import MediaStream as AudioVideoPiped
+        from pytgcalls.types import AudioQuality as HighQualityAudio
+        from pytgcalls.types import VideoQuality as MediumQualityVideo
+        from pytgcalls.types import Update as StreamAudioEnded # Placeholder if needed
 
 import config
 from ShahilMusic import LOGGER, YouTube, app
@@ -301,26 +319,39 @@ class Call(PyTgCalls):
                 audio_parameters=HighQualityAudio(),
                 video_parameters=MediumQualityVideo(),
             )
-        else:
-            stream = (
-                AudioVideoPiped(
+        try:
+            if video:
+                stream = AudioVideoPiped(
                     link,
                     audio_parameters=HighQualityAudio(),
                     video_parameters=MediumQualityVideo(),
                 )
-                if video
-                else AudioPiped(link, audio_parameters=HighQualityAudio())
+            else:
+                stream = AudioPiped(link, audio_parameters=HighQualityAudio())
+        except TypeError:
+            # Handle v2.x MediaStream
+            from pytgcalls.types import AudioQuality, VideoQuality
+            stream = AudioPiped(
+                link,
+                audio_quality=AudioQuality.STUDIO,
+                video_quality=VideoQuality.HD_720P if video else None
             )
         try:
             await assistant.join_chat(chat_id)
         except:
             pass
         try:
-            await assistant.join_group_call(
-                chat_id,
-                stream,
-                stream_type=StreamType().pulse_stream,
-            )
+            if StreamType:
+                await assistant.join_group_call(
+                    chat_id,
+                    stream,
+                    stream_type=StreamType().pulse_stream,
+                )
+            else:
+                try:
+                    await assistant.join(chat_id, stream)
+                except AttributeError:
+                    await assistant.join_group_call(chat_id, stream)
         except NoActiveGroupCall:
             raise AssistantErr(_["call_8"])
         except AlreadyJoinedError:
